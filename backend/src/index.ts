@@ -7,6 +7,8 @@ const port = process.env.PORT || 8080;
 app.use(cors({
   origin: process.env.FRONTEND_URL,
   methods: ['GET', 'POST', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Authorization', 'Content-Type'],
+  credentials: true,
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
