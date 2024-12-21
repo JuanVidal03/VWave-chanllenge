@@ -9,7 +9,6 @@ const client = new MongoClient(url);
 export const dbConnection = async():Promise<Db> => {
   try {
     await client.connect();
-    await client.db(dbName).command({ ping: 1 });
 
     const db:Db = client.db(dbName);
     console.log("<< DB connected successfully >>");

@@ -1,6 +1,5 @@
 export interface GetAddressGeoapifyResponse{
   country: string;
-  country_code: string;
   city: string;
   postcode: string;
   district: string;

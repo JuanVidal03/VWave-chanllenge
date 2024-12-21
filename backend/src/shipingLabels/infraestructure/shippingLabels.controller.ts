@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { generateAuthToken, createShippingLabel } from "../application/shippingLabel.service";
+import { createShippingLabel } from "../application/shippingLabel.service";
 
 const shippingLabelsRouter = Router();
 
@@ -9,15 +9,14 @@ shippingLabelsRouter.post('/create-shipping-label', async (req: Request, res: Re
   try {
     const response = await createShippingLabel(shippingLabel);
 
-    return res.json({
+    return res.status(201).json({
       statusCode: 201,
-      message: "It's working!",
+      message: "Shipping label created successfully!",
       data: response,
     });
 
   } catch (error: any) {
-    console.log('errrrrpr', error);
-    throw new Error(`Error creating token: ${error.message}`);
+    throw new Error(`Error creating the shipping label: ${error.message}`);
   }
 });
 

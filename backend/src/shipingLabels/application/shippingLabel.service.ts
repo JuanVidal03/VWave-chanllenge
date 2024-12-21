@@ -4,6 +4,9 @@ import { GenerateAuthTokenResponse } from "../domain/interfaces/generateAuthToke
 import { GenerateTokenPayload } from "../domain/interfaces/generateTokenPayload.interface";
 import { dbConnection } from "../../utils/db";
 import { GetAddressGeoapifyResponse } from "../domain/interfaces/getAddressGeoapifyResponse.interface";
+import { CreateShippingLabelInDb } from "../domain/interfaces/createShippingLabelInDb.interface";
+import { ObjectId } from "mongodb";
+import crypto from 'crypto';
 
 config();
 // DHL api information
@@ -44,13 +47,20 @@ export const generateAuthToken = async():Promise<GenerateAuthTokenResponse> => {
 
 export const getAddressByGeoapify = async(address: string): Promise<GetAddressGeoapifyResponse> => {
   try {
-    const response: any = await axios.get(`${geoapifyApiUrl}?text=${address}&format=json&apiKey=${geoapifyApiKey}&filter=countrycode:de`);
+    const response: any = await axios.get(`${geoapifyApiUrl}`, {
+        params: {
+          text: address,
+          format: 'json',
+          apiKey: geoapifyApiKey,
+          filter: 'countrycode:de',
+        }
+    });
+
     const addressData = response.data.results[0];
 
-    // format data
+    // getting just the needed data
     const addressInfo: GetAddressGeoapifyResponse = {
       country: addressData.country,
-      country_code: addressData.country_code,
       city: addressData.city,
       postcode: addressData.postcode,
       district: addressData.district,
@@ -66,23 +76,20 @@ export const getAddressByGeoapify = async(address: string): Promise<GetAddressGe
   }
 }
 
-export const createShippingLabel = async(shippingLabel: string): Promise<any> => {
-  const token = await generateAuthToken();
-  
+export const createShippingLabel = async(shippingLabel: string): Promise<ObjectId> => {
+  const token: GenerateAuthTokenResponse = await generateAuthToken();
+
   if (!token.access_token) {
     throw new Error('No token found.'); 
   }
   
-  const address = await getAddressByGeoapify(shippingLabel);
+  const address: GetAddressGeoapifyResponse = await getAddressByGeoapify(shippingLabel);
 
   if (!address) {
     throw new Error('No address found.');
   }
 
-
-  const db = await dbConnection();
-
-  const dataSchema ={
+  const payload ={
     profile: "STANDARD_GRUPPENPROFIL",
     shipments: [
       {
@@ -101,9 +108,9 @@ export const createShippingLabel = async(shippingLabel: string): Promise<any> =>
         },
         consignee: {
           name1: "Maria Musterfrau",
-          addressStreet: "Kurt-Schumacher-Str. 20",
-          postalCode: "53113",
-          city: "Bonn",
+          addressStreet: `${address.address_line1}`,
+          postalCode: `${address.postcode}`,
+          city: `${address.city}`,
           country: "DEU",
           email: "maria@musterfrau.de",
           phone: "+49 987654321",
@@ -125,18 +132,22 @@ export const createShippingLabel = async(shippingLabel: string): Promise<any> =>
   }
 
   try {
-    const query = await axios.post(`${DHLBaseApi}/shipping/v2/orders`, dataSchema, {
+    const query = await axios.post(`${DHLBaseApi}/shipping/v2/orders`, payload, {
       headers: {
         Authorization: `Bearer ${token.access_token}`,
         Accept: "application/json", "Content-Type": "application/json",
       }
     });
 
-    // const collection = await db.collection('shippingLabels').find({}).toArray();
-    // console.log(collection);
+    const db = dbConnection();
+    const shippingLabelsCollection = (await db).collection('shippingLabels');
+    const shippingLabelCreated: CreateShippingLabelInDb = await shippingLabelsCollection.insertOne({
+      shippingInfo: query.data.items[0],
+      address: address, 
+    });
     
-    // return query.data;
+    return shippingLabelCreated.insertedId;
   } catch (error: any) {
-    throw new Error(`Error creating token: ${error.message}`);
+    throw new Error(`Error creating shipping label: ${error.message}`);
   }
 }
