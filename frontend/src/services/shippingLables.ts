@@ -11,7 +11,14 @@ export const createShippingLabel = async (shippingLabel: CreateShippingLabel) =>
 
     return response.data;
   } catch (error: any) {
-    console.log("----->", error);
     throw new Error(`Error creating shipping label: ${error.response}`);
   }
+};
+
+export const getAllShippingLabels = async () => {
+  const response = await axios.get("/shipping-labels");
+  if (response.status !== 200) {
+    throw new Error(`Error: ${response.data}`);
+  }
+  return response.data;
 };
