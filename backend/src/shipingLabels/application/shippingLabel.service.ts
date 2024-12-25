@@ -5,7 +5,8 @@ import { GenerateTokenPayload } from "../domain/interfaces/generateTokenPayload.
 import { dbConnection } from "../../utils/db";
 import { GetAddressGeoapifyResponse } from "../domain/interfaces/getAddressGeoapifyResponse.interface";
 import { CreateShippingLabelInDb } from "../domain/interfaces/createShippingLabelInDb.interface";
-import { ObjectId } from "mongodb";
+import { Db, ObjectId } from "mongodb";
+import { AxiosResponse } from "../domain/interfaces/axiosResponse.interface";
 import { GetAllShippingLablesResponse } from "../domain/interfaces/getAllShippingLablesResponse.interface";
 
 config();
@@ -29,25 +30,29 @@ export const generateAuthToken = async():Promise<GenerateAuthTokenResponse> => {
   };
 
   try {
-    const response = await axios.post(
+    const response: AxiosResponse = await axios.post(
       `${DHLBaseApi}/account/auth/ropc/v1/token`,
       payload, {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         "Accept": "application/json",
       },
-    });
+    })
   
     return response.data;
-  } catch (error: any) {
-    throw new Error(`Error generating the token. Error: ${error.message}`);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    } else {
+      throw new Error('Unknowm error creating the DHL Auth token.');
+    }
   }
 
 }
 
 export const getAddressByGeoapify = async(address: string): Promise<GetAddressGeoapifyResponse> => {
   try {
-    const response: any = await axios.get(`${geoapifyApiUrl}`, {
+    const response: AxiosResponse = await axios.get(`${geoapifyApiUrl}`, {
         params: {
           text: address,
           format: 'json',
@@ -71,16 +76,20 @@ export const getAddressByGeoapify = async(address: string): Promise<GetAddressGe
     }
 
     return addressInfo;
-  } catch (error: any) {
-    throw new Error(`Error fetch the address from Geoapify, Error: ${error.message}`);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    } else {
+      throw new Error('Unknowm error getting the geoapify address.');
+    }
   }
 }
 
-export const createShippingLabel = async(shippingLabel: string): Promise<any> => {
+export const createShippingLabel = async(shippingLabel: string): Promise<ObjectId> => {
   const token: GenerateAuthTokenResponse = await generateAuthToken();
 
   if (!token.access_token) {
-    throw new Error('No token found.'); 
+    throw new Error('No token found.');
   }
   
   const address: GetAddressGeoapifyResponse = await getAddressByGeoapify(shippingLabel);
@@ -132,14 +141,14 @@ export const createShippingLabel = async(shippingLabel: string): Promise<any> =>
   }
 
   try {
-    const query = await axios.post(`${DHLBaseApi}/shipping/v2/orders`, payload, {
+    const query: AxiosResponse = await axios.post(`${DHLBaseApi}/shipping/v2/orders`, payload, {
       headers: {
         Authorization: `Bearer ${token.access_token}`,
         Accept: "application/json", "Content-Type": "application/json",
       }
     });
 
-    const db = dbConnection();
+    const db: Promise<Db> = dbConnection();
     const shippingLabelsCollection = (await db).collection('shippingLabels');
     const shippingLabelCreated: CreateShippingLabelInDb = await shippingLabelsCollection.insertOne({
       shippingInfo: query.data.items[0],
@@ -147,21 +156,82 @@ export const createShippingLabel = async(shippingLabel: string): Promise<any> =>
     });
     
     return shippingLabelCreated.insertedId;
-  } catch (error: any) {
-    throw new Error(`Error creating shipping label: ${error.message}`);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    } else {
+      throw new Error('Unknown error creating the shipping label');
+    }
   }
 }
 
-export const getAllShippingLabels = async():Promise<any> => {
+export const getAllShippingLabels = async():Promise<GetAllShippingLablesResponse[]> => {
   try {
     
-    const db = dbConnection();
+    const db: Promise<Db> = dbConnection();
     const shippingLabelsCollection = (await db).collection('shippingLabels');
     const shippingLabels = await shippingLabelsCollection.find().toArray();
-    
-    return shippingLabels;
+    // parse mongodb collection ro object json format
+    const mappedShippingLables: GetAllShippingLablesResponse[] = shippingLabels.map(shippingLabel => ({
+      _id: shippingLabel._id,
+      shippingInfo: {
+        shipmentNo: shippingLabel.shippingInfo.shipmentNo,
+        sstatus: shippingLabel.shippingInfo.sstatus,
+        shipmentRefNo: shippingLabel.shippingInfo.shipmentRefNo,
+        label: {
+          b64: shippingLabel.shippingInfo.label.b64,
+          fileFormat: shippingLabel.shippingInfo.label.fileFormat,
+          printFormat: shippingLabel.shippingInfo.label.printFormat,
+        },
+        validationMessages: shippingLabel.shippingInfo.validationMessages,
+        routingCode: shippingLabel.shippingInfo.routingCode,
+      },
+      address: {
+        country: shippingLabel.address.country,
+        city: shippingLabel.address.city,
+        postcode: shippingLabel.address.postcode,
+        district: shippingLabel.address.district,
+        street: shippingLabel.address.street,
+        housenumber: shippingLabel.address.housenumber,
+        address_line1: shippingLabel.address.address_line1,
+        address_line2: shippingLabel.address.address_line2,
+      },
+    }));
 
-  } catch (error: any) {
-    throw new Error(`Error fetching all shipping labels: ${error.message}`);
+    return mappedShippingLables;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    } else {
+      throw new Error('Unknown error fetching all shipping labels.');
+    }
+  }
+}
+
+export const getAddressesToAutocomplete = async(address: string): Promise<GetAddressGeoapifyResponse[]> => {
+  try {
+    const response: AxiosResponse = await axios.get(`${geoapifyApiUrl}`, {
+      params: {
+        text: address,
+        format: 'json',
+        apiKey: geoapifyApiKey,
+        filter: 'countrycode:de',
+      }
+  });
+
+  return response.data.results.map((address: GetAddressGeoapifyResponse) => ({
+    country: address.country,
+    state: address.state,
+    city: address.city,
+    postCode: address.postcode,
+    address_line1: address.address_line1,
+    address_line2: address.address_line2,
+  }));;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message)
+    } else {
+      throw new Error('Unknown error getting addresses.');
+    }
   }
 }

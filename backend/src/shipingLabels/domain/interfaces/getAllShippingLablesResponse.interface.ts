@@ -1,26 +1,27 @@
 import { ObjectId } from "mongodb";
-import { GetAddressGeoapifyResponse } from "./getAddressGeoapifyResponse.interface";
-
 
 export interface GetAllShippingLablesResponse {
   _id: ObjectId;
-  shippingInfo: ShippingInfo;
-  address: GetAddressGeoapifyResponse;
-}
-
-interface ShippingInfo {
-  shipmentNo: string,
-  sstatus: {
-      "title": string,
-      "status": number,
-      "statusCode": number,
-  },
-  shipmentRefNo: string,
-  label: {
+  shippingInfo: {
+    shipmentNo: string,
+    sstatus: unknown,
+    shipmentRefNo: string,
+    label: {
       b64: string,
-      fileFormat: StringConstructor,
+      fileFormat: string,
       printFormat: string
-  },
-  validationMessages: [],
-  routingCode: string,
+    },
+    validationMessages: [],
+    routingCode: string
+  };
+  address: {
+    country: string,
+    city: string,
+    postcode: string,
+    district: null | string,
+    street: string | null,
+    housenumber: string | null,
+    address_line1: string,
+    address_line2: string,
+  };
 }

@@ -1,39 +1,87 @@
 import { Router, Request, Response } from "express";
-import { createShippingLabel, getAllShippingLabels } from "../application/shippingLabel.service";
+import { createShippingLabel, getAllShippingLabels, getAddressesToAutocomplete } from "../application/shippingLabel.service";
+import { ObjectId } from "mongodb";
+import { GetAllShippingLablesResponse } from "../domain/interfaces/getAllShippingLablesResponse.interface";
 
 const shippingLabelsRouter = Router();
 
-shippingLabelsRouter.post('/create-shipping-label', async (req: Request, res: Response): Promise<any> => {
+shippingLabelsRouter.post('/create-shipping-label', async (req: Request, res: Response): Promise<void> => {
   const { shippingLabel } = req.body;
 
   try {
-    const response = await createShippingLabel(shippingLabel);
+    const response: ObjectId = await createShippingLabel(shippingLabel);
 
-    return res.status(201).json({
+    res.status(201).json({
       statusCode: 201,
       message: "Shipping label created successfully!",
       data: response,
     });
 
-  } catch (error: any) {
-    throw new Error(`Error creating the shipping label: ${error.message}`);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(500).json({
+        message: 'Error creating the shipping label',
+        statusCode: 500,
+        error: error.message,
+      });
+    } 
+
+    res.status(500).json({
+      message: 'Error creating the shipping label',
+      statusCode: 500,
+    });
   }
 });
 
-shippingLabelsRouter.get('/shipping-labels', async (req: Request, res: Response): Promise<any> => {
+shippingLabelsRouter.get('/shipping-labels', async (req: Request, res: Response): Promise<void> => {
   try {
     
-    const response = await getAllShippingLabels();
-    return res.status(200).json({
+    const response: GetAllShippingLablesResponse[] = await getAllShippingLabels();
+    res.status(200).json({
       statusCode: 200,
       message: "Get all shipping labels successfully!",
       data: response,
     });
 
-  } catch (error: any) {
-    return res.status(500).json({
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(500).json({
+        message: 'Error getting all the shipping labels',
+        statusCode: 500,
+        error: error.message,
+      });
+    } 
+
+    res.status(500).json({
       statusCode: 500,
-      message: "Something bad",
+      message: "Unknow error getting the shipping labels",
+    });
+  }
+});
+
+shippingLabelsRouter.get('/address-autocomplete/:address', async (req: Request, res: Response): Promise<void> => {
+  const { address } = req.params;
+
+  try {
+    const response = await getAddressesToAutocomplete(address);
+
+    res.status(200).json({
+      message: 'Get addresses successfully',
+      statusCode: 200,
+      data: response,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({
+        message: 'Error getting the shipping labels',
+        statusCode: 500,
+        error: error.message,
+      });
+    } 
+
+    res.status(500).json({
+      message: 'Error getting the shipping labels',
+      statusCode: 500,
     });
   }
 });
