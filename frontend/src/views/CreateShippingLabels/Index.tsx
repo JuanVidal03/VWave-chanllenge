@@ -1,5 +1,6 @@
 import React from "react";
 import CreateShippingLabelForm from "./components/CreateShippingLabelForm";
+import ShippingLablesTable from "./components/ShippingLablesTable";
 
 const Index: React.FC = () => {
   return (
@@ -8,6 +9,7 @@ const Index: React.FC = () => {
         <h1 className="text-3xl font-bold my-4">Create a new shipping labels</h1>
       </div>
       <CreateShippingLabelForm/>
+      <ShippingLablesTable/>
     </div>
   );
 };

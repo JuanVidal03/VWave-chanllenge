@@ -6,7 +6,7 @@ import { dbConnection } from "../../utils/db";
 import { GetAddressGeoapifyResponse } from "../domain/interfaces/getAddressGeoapifyResponse.interface";
 import { CreateShippingLabelInDb } from "../domain/interfaces/createShippingLabelInDb.interface";
 import { ObjectId } from "mongodb";
-import crypto from 'crypto';
+import { GetAllShippingLablesResponse } from "../domain/interfaces/getAllShippingLablesResponse.interface";
 
 config();
 // DHL api information
@@ -76,7 +76,7 @@ export const getAddressByGeoapify = async(address: string): Promise<GetAddressGe
   }
 }
 
-export const createShippingLabel = async(shippingLabel: string): Promise<ObjectId> => {
+export const createShippingLabel = async(shippingLabel: string): Promise<any> => {
   const token: GenerateAuthTokenResponse = await generateAuthToken();
 
   if (!token.access_token) {
@@ -149,5 +149,19 @@ export const createShippingLabel = async(shippingLabel: string): Promise<ObjectI
     return shippingLabelCreated.insertedId;
   } catch (error: any) {
     throw new Error(`Error creating shipping label: ${error.message}`);
+  }
+}
+
+export const getAllShippingLabels = async():Promise<any> => {
+  try {
+    
+    const db = dbConnection();
+    const shippingLabelsCollection = (await db).collection('shippingLabels');
+    const shippingLabels = await shippingLabelsCollection.find().toArray();
+    
+    return shippingLabels;
+
+  } catch (error: any) {
+    throw new Error(`Error fetching all shipping labels: ${error.message}`);
   }
 }
