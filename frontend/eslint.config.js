@@ -27,7 +27,6 @@ export default tseslint.config(
       "quotes": ["error", "double"],
       "no-console": "warn",
       "no-extra-semi": "error",
-      "camelcase": "error",
       "prefer-const": "error",
     },
   },
