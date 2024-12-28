@@ -85,7 +85,7 @@ export const getAddressByGeoapify = async(address: string): Promise<GetAddressGe
   }
 }
 
-export const createShippingLabel = async(shippingLabel: string): Promise<ObjectId> => {
+export const createShippingLabel = async(shippingLabel: string): Promise<GetAllShippingLablesResponse> => {
   const token: GenerateAuthTokenResponse = await generateAuthToken();
 
   if (!token.access_token) {
@@ -154,8 +154,10 @@ export const createShippingLabel = async(shippingLabel: string): Promise<ObjectI
       shippingInfo: query.data.items[0],
       address: address, 
     });
-    
-    return shippingLabelCreated.insertedId;
+
+    const returnShippingLabel = await shippingLabelsCollection.findOne({ _id: shippingLabelCreated.insertedId });
+
+    return returnShippingLabel as GetAllShippingLablesResponse;
   } catch (error: unknown) {
     if (error instanceof Error) {
       throw new Error(error.message);
@@ -198,7 +200,7 @@ export const getAllShippingLabels = async():Promise<GetAllShippingLablesResponse
       },
     }));
 
-    return mappedShippingLables;
+    return mappedShippingLables.reverse();
   } catch (error: unknown) {
     if (error instanceof Error) {
       throw new Error(error.message);
@@ -226,7 +228,7 @@ export const getAddressesToAutocomplete = async(address: string): Promise<GetAdd
     postCode: address.postcode,
     address_line1: address.address_line1,
     address_line2: address.address_line2,
-  }));;
+  }));
   } catch (error: unknown) {
     if (error instanceof Error) {
       throw new Error(error.message)

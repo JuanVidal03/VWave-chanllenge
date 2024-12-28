@@ -3,16 +3,20 @@ import { ObjectId } from "mongodb";
 export interface GetAllShippingLablesResponse {
   _id: ObjectId;
   shippingInfo: {
-    shipmentNo: string,
-    sstatus: unknown,
-    shipmentRefNo: string,
     label: {
-      b64: string,
-      fileFormat: string,
-      printFormat: string
-    },
-    validationMessages: [],
-    routingCode: string
+      b64: string;
+      fileFormat: string;
+      printFormat: string;
+    };
+    routingCode: string;
+    shipmentNo: string;
+    shipmentRefNo: string;
+    sstatus: {
+      title: string;
+      status: number;
+      statusCode: 200
+    };
+    validationMessages: [];
   };
   address: {
     country: string,

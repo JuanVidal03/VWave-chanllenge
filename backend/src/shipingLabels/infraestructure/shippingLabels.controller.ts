@@ -9,14 +9,14 @@ shippingLabelsRouter.post('/create-shipping-label', async (req: Request, res: Re
   const { shippingLabel } = req.body;
 
   try {
-    const response: ObjectId = await createShippingLabel(shippingLabel);
+    const response: GetAllShippingLablesResponse = await createShippingLabel(shippingLabel);
 
     res.status(201).json({
       statusCode: 201,
       message: "Shipping label created successfully!",
       data: response,
     });
-
+    return;
   } catch (error: unknown) {
     if (error instanceof Error) {
       res.status(500).json({
@@ -24,12 +24,14 @@ shippingLabelsRouter.post('/create-shipping-label', async (req: Request, res: Re
         statusCode: 500,
         error: error.message,
       });
+      return;
     } 
 
     res.status(500).json({
       message: 'Error creating the shipping label',
       statusCode: 500,
     });
+    return;
   }
 });
 
@@ -43,6 +45,7 @@ shippingLabelsRouter.get('/shipping-labels', async (req: Request, res: Response)
       data: response,
     });
 
+    return;
   } catch (error: unknown) {
     if (error instanceof Error) {
       res.status(500).json({
@@ -50,12 +53,14 @@ shippingLabelsRouter.get('/shipping-labels', async (req: Request, res: Response)
         statusCode: 500,
         error: error.message,
       });
+      return;
     } 
 
     res.status(500).json({
       statusCode: 500,
       message: "Unknow error getting the shipping labels",
     });
+    return;
   }
 });
 
@@ -70,6 +75,7 @@ shippingLabelsRouter.get('/address-autocomplete/:address', async (req: Request, 
       statusCode: 200,
       data: response,
     });
+    return;
   } catch (error) {
     if (error instanceof Error) {
       res.status(500).json({
@@ -77,12 +83,14 @@ shippingLabelsRouter.get('/address-autocomplete/:address', async (req: Request, 
         statusCode: 500,
         error: error.message,
       });
+      return;
     } 
 
     res.status(500).json({
       message: 'Error getting the shipping labels',
       statusCode: 500,
     });
+    return;
   }
 });
 
