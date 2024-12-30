@@ -45,6 +45,7 @@ const ShippingLablesTable = (): JSX.Element => {
   return (
     <div className="h-full w-[80%] mb-12">
       <AgGridReact
+        className="shipping-labels-table"
         rowData={shippingLabels?.data}
         columnDefs={colDefs}
         pagination={true}
