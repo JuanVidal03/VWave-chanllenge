@@ -1,50 +1,34 @@
-# React + TypeScript + Vite
+## Frontend Development Process
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+To configure correctly the frontend, first of all, you have to move to "frontend" directory and the install all dependecies in package.json:
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+cd frontend/
+npm install
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+Then you have to remove the ".example" in the ".env.example"; here is a single environment variable, the backend api url, you must change it for the correct url backend.
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+Once all of this has been set up correctly, you can run this command on the terminal:
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+npm run dev
+```
+
+### Project Structure
+
+The project will be organized as follows:
+
+```
+/src
+│
+├── /assets
+├── /context
+├── /hooks
+├── /interfaces
+├── /services
+├── /views
+│   ├── ModuleName/
+├────── /components
+├────── Index.tsx
 ```
