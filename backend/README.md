@@ -1,32 +1,21 @@
-## Development Process
+## Backend Development Process
 
-### 1. Main Branches:
-- **`main`**: This branch contains production-ready code. Direct merges to `main` are **not allowed** without prior code review and approval.
-- **`develop`**: This is the continuous integration branch where all feature branches are merged. All new features should branch off from `develop`.
+To configure correctly the backend, first of all, you have to move to "backend" directory and the install all dependecies in package.json:
 
-### 2. Feature Branches:
-- **Feature branches** should be created from `develop` and follow the naming convention `feature/<description>`. Example:
-  
-```
-bash
-git checkout develop
-git checkout -b feature/add-user-auth
+```bash
+cd backend/
+npm install
 ```
 
-Once the feature is complete, create a pull request (PR) to merge the feature branch back into develop. The code will be reviewed before merging.
+Then you have to remove the ".example" in the ".env.example"; here are all the environment variables to configure the project. You must put your correct data, such as API keys, API secrets, etc.
 
-### 3. Merge process:
-Merging to `main` must go through a pull request process from `develop`. No direct merges to main are allowed. Only after code review and approval can the code be merged into main.
+Once all of this has been set up correctly, you can run this command on the terminal:
 
-Example steps:
-
-```
-git checkout develop
-git merge feature/add-user-auth
-git push origin develop
+```bash
+npm run dev
 ```
 
-## Screaming Architecture Overview
+### Screaming Architecture Overview
 
 This project follows the **Screaming Architecture** pattern, an approach where the structure and design of the application make it immediately clear what the system is about. The goal is for the architecture to reflect the core business or domain, rather than focusing on technical aspects like frameworks, databases, or infrastructure.
 
@@ -51,7 +40,6 @@ The project will be organized as follows:
 │   ├── domain/
 │   │   ├── dto/
 │   │   ├── interfaces/
-│   │   ├── name.entity.ts
 │   ├── infrastructure/
 │   │   ├── name.controller.ts
 ```
